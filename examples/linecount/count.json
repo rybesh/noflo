@@ -4,26 +4,35 @@
     },
     "processes": {
         "ReadFile": {
-            "component": "ReadFile"
+            "component": "ReadFile",
+            "display": {
+                "x": 91,
+                "y": 154
+            }
         },
         "SplitbyLines": {
-            "component": "SplitStr"
+            "component": "SplitStr",
+            "display": {
+                "x": 209,
+                "y": 414
+            }
         },
         "CountLines": {
-            "component": "Counter"
+            "component": "Counter",
+            "display": {
+                "x": 206,
+                "y": 750
+            }
         },
         "Display": {
-            "component": "Output"
+            "component": "Output",
+            "display": {
+                "x": 71,
+                "y": 1003
+            }
         }
     },
     "connections": [
-        {
-            "data": "package.json",
-            "tgt": {
-                "process": "ReadFile",
-                "port": "source"
-            }
-        },
         {
             "src": {
                 "process": "ReadFile",
@@ -62,6 +71,13 @@
             "tgt": {
                 "process": "Display",
                 "port": "in"
+            }
+        },
+        {
+            "data": "package.json",
+            "tgt": {
+                "process": "ReadFile",
+                "port": "source"
             }
         }
     ]

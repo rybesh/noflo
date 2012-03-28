@@ -6,7 +6,7 @@
     "contributors": [
         "Jerry Jalava"
     ],
-    "version":      "0.0.1",
+    "version":      "0.0.2",
     "licenses":     [{
         "type":         "MIT",
         "url":          "https://github.com/bergie/noflo/raw/master/LICENSE"
@@ -28,6 +28,7 @@
     "bin":          {
         "noflo":        "./bin/noflo"
     },
+    "homepage": "http://noflojs.org/",
     "repository":   {
         "type":         "git",
         "url":          "git://github.com/bergie/noflo.git"

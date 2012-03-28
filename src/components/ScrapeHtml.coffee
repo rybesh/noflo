@@ -1,6 +1,8 @@
 noflo = require "noflo"
 jsdom = require "jsdom"
 
+# TODO: put text from scraped elements into groups by element ID?
+
 class ScrapeHtml extends noflo.Component
     constructor: ->
         @html = ""

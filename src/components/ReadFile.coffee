@@ -1,4 +1,4 @@
-# The ReadFile component receives a filename on the soure port, and
+# The ReadFile component receives a filename on the source port, and
 # sends the contents of the specified file to the out port. The filename
 # is used to create a named group around the file contents data. In case
 # of errors the error message will be sent to the error port.

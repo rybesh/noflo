@@ -2,6 +2,7 @@
 
 internalSocket = require "./InternalSocket"
 component = require "./Component"
+queueingcomponent = require "./QueueingComponent"
 port = require "./Port"
 arrayport = require "./ArrayPort"
 graph = require "./Graph"
@@ -185,6 +186,7 @@ exports.saveFile = (graph, file, success) ->
         success file
 
 exports.Component = component.Component
+exports.QueueingComponent = queueingcomponent.QueueingComponent
 exports.Port = port.Port
 exports.ArrayPort = arrayport.ArrayPort
 exports.Graph = graph.Graph

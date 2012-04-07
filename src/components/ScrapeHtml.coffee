@@ -1,14 +1,17 @@
 noflo = require "noflo"
 jsdom = require "jsdom"
+fs = require "fs"
 
-class ScrapeHtml extends noflo.Component
+class ScrapeHtml extends noflo.QueueingComponent
     constructor: ->
-        @html = []
+        @jquery = "http://code.jquery.com/jquery.min.js"
+        @jquerysrc = "scripts"
         @textSelector = ""
         @ignoreSelectors = []
 
         @inPorts =
             in: new noflo.Port()
+            jquery: new noflo.Port()
             textSelector: new noflo.Port()
             ignoreSelector: new noflo.ArrayPort()
         @outPorts =
@@ -17,46 +20,62 @@ class ScrapeHtml extends noflo.Component
 
         html = ""
         @inPorts.in.on "connect", =>
-            @html = []
+            html = ""
         @inPorts.in.on "begingroup", (group) =>
-            @outPorts.out.beginGroup group
+            @queue.push (callback) =>
+                @outPorts.out.beginGroup group
+                callback()
         @inPorts.in.on "data", (data) =>
             html += data
         @inPorts.in.on "endgroup", =>
-            @once "scraped", =>
+            @queue.push do (html) =>
+                return (callback) => @scrapeHtml html, callback
+            html = ""
+            @queue.push (callback) =>
                 @outPorts.out.endGroup()
-            @html.push html
-            html = ""
-            @scrapeHtml()
+                callback()
         @inPorts.in.on "disconnect", =>
-            @once "scraped", =>
-                @outPorts.out.disconnect()
-            return if @html.length > 0 # we are using groups
-            @html.push html
+            @queue.push do (html) =>
+                return (callback) => @scrapeHtml html, callback
             html = ""
-            @scrapeHtml()
+            @queue.push (callback) =>
+                @outPorts.out.disconnect()
+                callback()
+
+        @inPorts.jquery.on "data", (data) =>
+            return @jquery = data if data.indexOf("http://") == 0
+            @jquery = fs.readFileSync(data).toString();
+            @jquerysrc = "src"
 
         @inPorts.textSelector.on "data", (data) =>
             @textSelector = data
         @inPorts.textSelector.on "disconnect", =>
-            @scrapeHtml()
+            @queue.push do (html) =>
+                return (callback) => @scrapeHtml html, callback
+            html = ""
 
         @inPorts.ignoreSelector.on "data", (data) =>
             @ignoreSelectors.push data
 
-    scrapeHtml: ->
-        return unless @html.length > 0
-        return unless @textSelector.length > 0
-        for h in @html
-            jsdom.env h, ['http://code.jquery.com/jquery.min.js'], (err, win) =>
+        super "ScrapeHtml"
+
+    scrapeHtml: (html, callback) ->
+        return callback null unless html.length > 0
+        return callback null unless @textSelector.length > 0
+        args =
+            html: html,
+            done: (err, win) =>
                 if err
                     @outPorts.error.send err
-                    return @outPorts.error.disconnect()
+                    @outPorts.error.disconnect()
+                    return callback err
                 win.$(ignore).remove() for ignore in @ignoreSelectors
                 win.$(@textSelector).map (i,e) =>
                     @outPorts.out.beginGroup e.id if e.hasAttribute "id"
                     @outPorts.out.send win.$(e).text()
                     @outPorts.out.endGroup() if e.hasAttribute "id"
-                @emit "scraped"
+                callback null
+        args[@jquerysrc] = @jquery
+        jsdom.env args
 
 exports.getComponent = -> new ScrapeHtml

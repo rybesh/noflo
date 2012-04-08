@@ -44,7 +44,6 @@ class SplitSentences extends noflo.QueueingComponent
         super "SplitSentences"
 
     isReady: ->
-        console.log "ready? ", @ready
         @ready
 
     splitSentences: (text, callback) ->

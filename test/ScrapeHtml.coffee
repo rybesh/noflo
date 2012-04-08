@@ -23,23 +23,37 @@ exports["test change concurrency"] = (test) ->
     s = socket.createSocket()
     c.inPorts.concurrency.attach cc
     c.inPorts.textSelector.attach s
-    datas = []
-    calls = []
-    q.on "data", (data) -> calls.push "queued #{data}"
-    sat.once "data", -> test.fail "should not get saturated"
-    emp.on "data", -> calls.push "empty"
-    out.on "data", (data) -> datas.push data
+    output = []
+    events = []
+    q.on "data", (data) -> events.push "queued #{data}"
+    sat.on "data", (data) ->
+        events.push "saturated"
+        test.equal data, 4
+    emp.on "data", -> events.push "empty"
+    out.on "begingroup", (data) -> output.push "begingroup #{data}"
+    out.on "data", (data) -> output.push data
+    out.on "endgroup", -> output.push "endgroup"
     dra.on "data", ->
-        calls.push "drain"
-        test.same datas, ["bar", "baz"]
-        test.same calls, ["queued 1", "queued 2", "queued 3", "empty", "drain"]
+        events.push "drain"
+        test.same output, ["begingroup test", "bar", "baz", "endgroup"]
+        test.same events, [
+            "queued 1",
+            "queued 2",
+            "queued 3",
+            "saturated",
+            "queued 4",
+            "empty",
+            "drain"
+        ]
         test.done()
     cc.send 4
     cc.disconnect()
     s.send "p.test"
     s.disconnect()
+    ins.beginGroup "test"
     ins.send '<div><p>foo</p><p class="test">ba'
     ins.send 'r</p><p class="test">baz</p></div>'
+    ins.endGroup()
     ins.disconnect()
 
 exports["test selector then html"] = (test) ->

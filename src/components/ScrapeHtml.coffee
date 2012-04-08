@@ -26,18 +26,18 @@ class ScrapeHtml extends noflo.QueueingComponent
             html += data
         @inPorts.in.on "endgroup", =>
             @push do (html) =>
-                return (callback) => @scrapeHtml html, callback
+                return (callback) =>
+                    @scrapeHtml html, =>
+                        @outPorts.out.endGroup()
+                        callback()
             html = ""
-            @push (callback) =>
-                @outPorts.out.endGroup()
-                callback()
         @inPorts.in.on "disconnect", =>
             @push do (html) =>
-                return (callback) => @scrapeHtml html, callback
+                return (callback) =>
+                    @scrapeHtml html, =>
+                        @outPorts.out.disconnect()
+                        callback()
             html = ""
-            @push (callback) =>
-                @outPorts.out.disconnect()
-                callback()
 
         @inPorts.textSelector.on "data", (data) =>
             @textSelector = data
@@ -54,8 +54,8 @@ class ScrapeHtml extends noflo.QueueingComponent
     doScrape: ->
 
     scrapeHtml: (html, callback) ->
-        return callback null unless html.length > 0
-        return callback null unless @textSelector.length > 0
+        return callback() unless html.length > 0
+        return callback() unless @textSelector.length > 0
         $ = cheerio.load html
         $(ignore).remove() for ignore in @ignoreSelectors
         $(@textSelector).each (i,e) =>
@@ -64,7 +64,7 @@ class ScrapeHtml extends noflo.QueueingComponent
             @outPorts.out.beginGroup id if id?
             @outPorts.out.send o.text()
             @outPorts.out.endGroup() if id?
-        callback null
+        callback()
 
 
 exports.getComponent = -> new ScrapeHtml

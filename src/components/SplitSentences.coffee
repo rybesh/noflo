@@ -4,6 +4,13 @@ splitta = require "splitta"
 class SplitSentences extends noflo.QueueingComponent
     constructor: ->
 
+        @ready = false
+        splitta.loadModel (err, model) =>
+            throw err if err?
+            @model = model
+            @ready = true
+            @emit "ready"
+
         @inPorts =
             in: new noflo.Port()
         @outPorts =
@@ -36,9 +43,13 @@ class SplitSentences extends noflo.QueueingComponent
 
         super "SplitSentences"
 
+    isReady: ->
+        console.log "ready? ", @ready
+        @ready
+
     splitSentences: (text, callback) ->
         return callback() unless text.length > 0
-        splitta.segment text, (err, sentences) =>
+        @model.segment text, (err, sentences) =>
             if err
                 @outPorts.error.send err
                 @outPorts.error.disconnect()

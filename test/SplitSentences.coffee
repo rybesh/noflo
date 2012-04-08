@@ -16,24 +16,21 @@ exports["test splitting grouped text"] = (test) ->
     err.once "data", (err) ->
         test.fail err
         test.done()
-    expectevent = "begingroup"
-    expectgroup = ["test"]
+    calls = []
+    datas = []
     out.on "begingroup", (group) ->
-        test.equal "begingroup", expectevent
-        test.equal group, expectgroup.shift()
-        expectevent = "data"
-    expectdata = [
-        "One of Manila's most notorious jails is allowing inmates to handle cleavers and knives.",
-        "Based on a reality show, it is meant to hone inmates' skills, keep them productive, and prepare them to return to the work force."
-    ]
+        calls.push "begingroup #{group}"
     out.on "data", (data) ->
-        test.equal "data", expectevent
-        test.equal data, expectdata.shift()
-        expectevent = "endgroup" if expectdata.length == 0
+        calls.push "data"
+        datas.push data
     out.on "endgroup", ->
-        test.equal "endgroup", expectevent
-        expectevent = "begingroup"
-        test.done() if expectgroup.length == 0
+        calls.push "endgroup"
+        test.same calls, ["begingroup test", "data", "data", "endgroup"]
+        test.same datas, [
+          "One of Manila's most notorious jails is allowing inmates to handle cleavers and knives.",
+          "Based on a reality show, it is meant to hone inmates' skills, keep them productive, and prepare them to return to the work force."
+        ]
+        test.done()
     ins.beginGroup "test"
     ins.send "One of Manila's most notorious jails is allowing inmates to hand"
     ins.send "le cleavers and knives. Based on a reality show, it is meant to "

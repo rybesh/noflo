@@ -1,9 +1,9 @@
 noflo = require "noflo"
 splitta = require "splitta"
 
-class SplitSentences extends noflo.Component
+class SplitSentences extends noflo.QueueingComponent
     constructor: ->
-        @text = ""
+
         @inPorts =
             in: new noflo.Port()
         @outPorts =
@@ -12,31 +12,38 @@ class SplitSentences extends noflo.Component
 
         text = ""
         @inPorts.in.on "connect", =>
-            @text = ""
+            text = ""
         @inPorts.in.on "begingroup", (group) =>
-            @outPorts.out.beginGroup group
+            @push (callback) =>
+                @outPorts.out.beginGroup group
+                callback()
         @inPorts.in.on "data", (data) =>
             text += data
         @inPorts.in.on "endgroup", =>
-            @once "split", =>
-                @outPorts.out.endGroup()
-            @text = text
+            @push do (text) =>
+                return (callback) =>
+                    @splitSentences text, =>
+                        @outPorts.out.endGroup()
+                        callback()
             text = ""
-            @splitSentences()
         @inPorts.in.on "disconnect", =>
-            @once "split", =>
-                @outPorts.out.disconnect()
-            @text = text
+            @push do (text) =>
+                return (callback) =>
+                    @splitSentences text, =>
+                        @outPorts.out.disconnect()
+                        callback()
             text = ""
-            @splitSentences()
 
-    splitSentences: ->
-        return unless @text.length > 0
-        splitta.segment @text, (err, sentences) =>
+        super "SplitSentences"
+
+    splitSentences: (text, callback) ->
+        return callback() unless text.length > 0
+        splitta.segment text, (err, sentences) =>
             if err
                 @outPorts.error.send err
-                return @outPorts.error.disconnect()
+                @outPorts.error.disconnect()
+                return callback()
             @outPorts.out.send sentence for sentence in sentences
-            @emit "split"
+            callback()
 
 exports.getComponent = -> new SplitSentences

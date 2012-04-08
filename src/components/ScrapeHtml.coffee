@@ -19,30 +19,30 @@ class ScrapeHtml extends noflo.QueueingComponent
         @inPorts.in.on "connect", =>
             html = ""
         @inPorts.in.on "begingroup", (group) =>
-            @queue.push (callback) =>
+            @push (callback) =>
                 @outPorts.out.beginGroup group
                 callback()
         @inPorts.in.on "data", (data) =>
             html += data
         @inPorts.in.on "endgroup", =>
-            @queue.push do (html) =>
+            @push do (html) =>
                 return (callback) => @scrapeHtml html, callback
             html = ""
-            @queue.push (callback) =>
+            @push (callback) =>
                 @outPorts.out.endGroup()
                 callback()
         @inPorts.in.on "disconnect", =>
-            @queue.push do (html) =>
+            @push do (html) =>
                 return (callback) => @scrapeHtml html, callback
             html = ""
-            @queue.push (callback) =>
+            @push (callback) =>
                 @outPorts.out.disconnect()
                 callback()
 
         @inPorts.textSelector.on "data", (data) =>
             @textSelector = data
         @inPorts.textSelector.on "disconnect", =>
-            @queue.push do (html) =>
+            @push do (html) =>
                 return (callback) => @scrapeHtml html, callback
             html = ""
 

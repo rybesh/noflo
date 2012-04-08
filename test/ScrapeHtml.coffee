@@ -5,31 +5,34 @@ setupComponent = ->
     c = scrape.getComponent()
     ins = socket.createSocket()
     out = socket.createSocket()
+    q = socket.createSocket()
     sat = socket.createSocket()
     emp = socket.createSocket()
     dra = socket.createSocket()
     c.inPorts.in.attach ins
     c.outPorts.out.attach out
+    c.outPorts.queued.attach q
     c.outPorts.saturated.attach sat
     c.outPorts.empty.attach emp
     c.outPorts.drain.attach dra
-    return [c, ins, out, sat, emp, dra]
+    return [c, ins, out, q, sat, emp, dra]
 
 exports["test change concurrency"] = (test) ->
-    [c, ins, out, sat, emp, dra] = setupComponent()
+    [c, ins, out, q, sat, emp, dra] = setupComponent()
     cc = socket.createSocket()
     s = socket.createSocket()
     c.inPorts.concurrency.attach cc
     c.inPorts.textSelector.attach s
     datas = []
     calls = []
+    q.on "data", (data) -> calls.push "queued #{data}"
     sat.once "data", -> test.fail "should not get saturated"
     emp.on "data", -> calls.push "empty"
     out.on "data", (data) -> datas.push data
     dra.on "data", ->
         calls.push "drain"
         test.same datas, ["bar", "baz"]
-        test.same calls, ["empty", "drain"]
+        test.same calls, ["queued 1", "queued 2", "queued 3", "empty", "drain"]
         test.done()
     cc.send 4
     cc.disconnect()
@@ -40,7 +43,7 @@ exports["test change concurrency"] = (test) ->
     ins.disconnect()
 
 exports["test selector then html"] = (test) ->
-    [c, ins, out, sat, emp, dra] = setupComponent()
+    [c, ins, out, q, sat, emp, dra] = setupComponent()
     s = socket.createSocket()
     c.inPorts.textSelector.attach s
     expect = ["bar","baz"]
@@ -56,7 +59,7 @@ exports["test selector then html"] = (test) ->
     ins.disconnect()
 
 exports["test html then selector"] = (test) ->
-    [c, ins, out, sat, emp, dra] = setupComponent()
+    [c, ins, out, q, sat, emp, dra] = setupComponent()
     s = socket.createSocket()
     c.inPorts.textSelector.attach s
     expect = ["bar","baz"]
@@ -70,7 +73,7 @@ exports["test html then selector"] = (test) ->
     s.disconnect()
 
 exports["test ignore"] = (test) ->
-    [c, ins, out, sat, emp, dra] = setupComponent()
+    [c, ins, out, q, sat, emp, dra] = setupComponent()
     s = socket.createSocket()
     i = socket.createSocket()
     c.inPorts.textSelector.attach s
@@ -89,7 +92,7 @@ exports["test ignore"] = (test) ->
     s.disconnect()
 
 exports["test group by element id"] = (test) ->
-    [c, ins, out, sat, emp, dra] = setupComponent()
+    [c, ins, out, q, sat, emp, dra] = setupComponent()
     s = socket.createSocket()
     c.inPorts.textSelector.attach s
     expectevent = "begingroup"

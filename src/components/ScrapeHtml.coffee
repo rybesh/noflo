@@ -1,17 +1,14 @@
 noflo = require "noflo"
-jsdom = require "jsdom"
+cheerio = require "cheerio"
 fs = require "fs"
 
 class ScrapeHtml extends noflo.QueueingComponent
     constructor: ->
-        @jquery = "http://code.jquery.com/jquery.min.js"
-        @jquerysrc = "scripts"
         @textSelector = ""
         @ignoreSelectors = []
 
         @inPorts =
             in: new noflo.Port()
-            jquery: new noflo.Port()
             textSelector: new noflo.Port()
             ignoreSelector: new noflo.ArrayPort()
         @outPorts =
@@ -42,11 +39,6 @@ class ScrapeHtml extends noflo.QueueingComponent
                 @outPorts.out.disconnect()
                 callback()
 
-        @inPorts.jquery.on "data", (data) =>
-            return @jquery = data if data.indexOf("http://") == 0
-            @jquery = fs.readFileSync(data).toString();
-            @jquerysrc = "src"
-
         @inPorts.textSelector.on "data", (data) =>
             @textSelector = data
         @inPorts.textSelector.on "disconnect", =>
@@ -59,23 +51,20 @@ class ScrapeHtml extends noflo.QueueingComponent
 
         super "ScrapeHtml"
 
+    doScrape: ->
+
     scrapeHtml: (html, callback) ->
         return callback null unless html.length > 0
         return callback null unless @textSelector.length > 0
-        args =
-            html: html,
-            done: (err, win) =>
-                if err
-                    @outPorts.error.send err
-                    @outPorts.error.disconnect()
-                    return callback err
-                win.$(ignore).remove() for ignore in @ignoreSelectors
-                win.$(@textSelector).map (i,e) =>
-                    @outPorts.out.beginGroup e.id if e.hasAttribute "id"
-                    @outPorts.out.send win.$(e).text()
-                    @outPorts.out.endGroup() if e.hasAttribute "id"
-                callback null
-        args[@jquerysrc] = @jquery
-        jsdom.env args
+        $ = cheerio.load html
+        $(ignore).remove() for ignore in @ignoreSelectors
+        $(@textSelector).each (i,e) =>
+            o = $(e)
+            id = o.attr "id"
+            @outPorts.out.beginGroup id if id?
+            @outPorts.out.send o.text()
+            @outPorts.out.endGroup() if id?
+        callback null
+
 
 exports.getComponent = -> new ScrapeHtml

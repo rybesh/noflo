@@ -66,5 +66,4 @@ class ScrapeHtml extends noflo.QueueingComponent
             @outPorts.out.endGroup() if id?
         callback()
 
-
 exports.getComponent = -> new ScrapeHtml

@@ -13,7 +13,7 @@ class QueueingComponent extends component.Component
 
         @_queue = async.queue ((task, callback) =>
             task callback
-        ), 2 # 2 workers
+        ), 2 # of workers
         @_queue.saturated = =>
             @outPorts.saturated.send @_queue.length() if @outPorts.saturated.socket
         @_queue.empty = =>

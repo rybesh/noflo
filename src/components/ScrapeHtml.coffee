@@ -2,6 +2,10 @@ noflo = require "noflo"
 cheerio = require "cheerio"
 fs = require "fs"
 
+decode = (str) ->
+  return str unless str.indexOf "&" >= 0
+  return str.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")
+
 class ScrapeHtml extends noflo.QueueingComponent
     constructor: ->
         @textSelector = ""
@@ -62,7 +66,7 @@ class ScrapeHtml extends noflo.QueueingComponent
             o = $(e)
             id = o.attr "id"
             @outPorts.out.beginGroup id if id?
-            @outPorts.out.send o.text()
+            @outPorts.out.send decode o.text()
             @outPorts.out.endGroup() if id?
         callback()
 

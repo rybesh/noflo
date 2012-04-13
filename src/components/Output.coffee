@@ -11,6 +11,7 @@ class Output extends noflo.Component
             showHidden: false
             depth: 2
             colors: false
+            groups: false
 
         @inPorts =
             in: new noflo.ArrayPort()
@@ -19,11 +20,11 @@ class Output extends noflo.Component
         @outPorts = {}
 
         @inPorts.in.on "begingroup", (group) =>
-            @log "[    group ] #{group}".magenta
+            @log "[    group ] #{group}".magenta if @options.groups
         @inPorts.in.on "data", (data) =>
             @log data
         @inPorts.in.on "endgroup", =>
-            @log "[ endgroup ]".magenta
+            @log "[ endgroup ]".magenta if @options.groups
 
         @inPorts.options.on "data", (data) =>
             @setOptions data

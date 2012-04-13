@@ -29,6 +29,7 @@ class Output extends noflo.Component
             @options[key] = value
 
     log: (data) ->
+        return console.log data unless typeof data == "object"
         console.log util.inspect data,
             @options.showHidden, @options.depth, @options.colors
 

@@ -6,7 +6,7 @@
 fs = require "fs"
 noflo = require "noflo"
 
-class ReadFile extends noflo.Component
+class ReadFile extends noflo.QueueingComponent
     constructor: ->
         @inPorts =
             source: new noflo.Port()
@@ -17,15 +17,20 @@ class ReadFile extends noflo.Component
         @inPorts.source.on "data", (data) =>
             @readFile data
 
+        super "ReadFile"
+
     readFile: (fileName) ->
-        fs.readFile fileName, "utf-8", (err, data) =>
-            if err
-                @outPorts.error.send err
-                return @outPorts.error.disconnect()
-            @outPorts.out.beginGroup fileName
-            @outPorts.out.send data
-            @outPorts.out.endGroup()
-            @outPorts.out.disconnect()
+        @push (callback) =>
+            fs.readFile fileName, "utf-8", (err, data) =>
+                if err
+                    @outPorts.error.send err
+                    @outPorts.error.disconnect()
+                    return callback err
+                @outPorts.out.beginGroup fileName
+                @outPorts.out.send data
+                @outPorts.out.endGroup()
+                @outPorts.out.disconnect()
+                callback()
 
 exports.getComponent = ->
     new ReadFile()

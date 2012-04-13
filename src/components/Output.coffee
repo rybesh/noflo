@@ -1,5 +1,6 @@
 noflo = require "noflo"
 util = require "util"
+colors = require "colors"
 
 class Output extends noflo.Component
 
@@ -17,8 +18,12 @@ class Output extends noflo.Component
 
         @outPorts = {}
 
+        @inPorts.in.on "begingroup", (group) =>
+            @log "[    group ] #{group}".magenta
         @inPorts.in.on "data", (data) =>
             @log data
+        @inPorts.in.on "endgroup", =>
+            @log "[ endgroup ]".magenta
 
         @inPorts.options.on "data", (data) =>
             @setOptions data

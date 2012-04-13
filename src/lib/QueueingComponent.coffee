@@ -24,7 +24,21 @@ class QueueingComponent extends component.Component
         @inPorts.concurrency.on "data", (data) =>
             @_queue.concurrency = data
 
-    push: (task) ->
+        @groups = []
+        @inPorts.in.on "begingroup", (group) =>
+            @groups.push group
+        @inPorts.in.on "endgroup", =>
+            @groups.pop()
+
+    push: (func, args) ->
+        groups = @groups.slice 0 # make a copy
+        task = do (args, groups) =>
+            return (callback) =>
+                @outPorts.out.beginGroup group for group in groups
+                args.push =>
+                    @outPorts.out.endGroup() for group in groups
+                    callback()
+                func.apply this, args
         @_queue.push task
         @outPorts.queued.send @_queue.length() if @outPorts.queued.socket
 

@@ -20,25 +20,13 @@ class SplitSentences extends noflo.QueueingComponent
         text = ""
         @inPorts.in.on "connect", =>
             text = ""
-        @inPorts.in.on "begingroup", (group) =>
-            @push (callback) =>
-                @outPorts.out.beginGroup group
-                callback()
         @inPorts.in.on "data", (data) =>
             text += data
         @inPorts.in.on "endgroup", =>
-            @push do (text) =>
-                return (callback) =>
-                    @splitSentences text, =>
-                        @outPorts.out.endGroup()
-                        callback()
+            @push @splitSentences, [text]
             text = ""
         @inPorts.in.on "disconnect", =>
-            @push do (text) =>
-                return (callback) =>
-                    @splitSentences text, =>
-                        @outPorts.out.disconnect()
-                        callback()
+            @push @splitSentences, [text]
             text = ""
 
         super "SplitSentences"

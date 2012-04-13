@@ -19,35 +19,29 @@ class ScrapeHtml extends noflo.QueueingComponent
             out: new noflo.Port()
             error: new noflo.Port()
 
+        current_group = null
         html = ""
         @inPorts.in.on "connect", =>
             html = ""
         @inPorts.in.on "begingroup", (group) =>
-            @push (callback) =>
-                @outPorts.out.beginGroup group
-                callback()
+            current_group = group
         @inPorts.in.on "data", (data) =>
             html += data
         @inPorts.in.on "endgroup", =>
-            @push do (html) =>
-                return (callback) =>
-                    @scrapeHtml html, =>
-                        @outPorts.out.endGroup()
-                        callback()
+            @push do (html, current_group) =>
+                return (callback) => @scrapeHtml html, current_group, callback
+            current_group = null
             html = ""
         @inPorts.in.on "disconnect", =>
-            @push do (html) =>
-                return (callback) =>
-                    @scrapeHtml html, =>
-                        @outPorts.out.disconnect()
-                        callback()
+            @push do (html, current_group) =>
+                return (callback) => @scrapeHtml html, current_group, callback
             html = ""
 
         @inPorts.textSelector.on "data", (data) =>
             @textSelector = data
         @inPorts.textSelector.on "disconnect", =>
-            @push do (html) =>
-                return (callback) => @scrapeHtml html, callback
+            @push do (html, current_group) =>
+                return (callback) => @scrapeHtml html, current_group, callback
             html = ""
 
         @inPorts.ignoreSelector.on "data", (data) =>
@@ -57,9 +51,10 @@ class ScrapeHtml extends noflo.QueueingComponent
 
     doScrape: ->
 
-    scrapeHtml: (html, callback) ->
+    scrapeHtml: (html, group, callback) ->
         return callback() unless html.length > 0
         return callback() unless @textSelector.length > 0
+        @outPorts.out.beginGroup group if group?
         $ = cheerio.load html
         $(ignore).remove() for ignore in @ignoreSelectors
         $(@textSelector).each (i,e) =>
@@ -68,6 +63,7 @@ class ScrapeHtml extends noflo.QueueingComponent
             @outPorts.out.beginGroup id if id?
             @outPorts.out.send decode o.text()
             @outPorts.out.endGroup() if id?
+        @outPorts.out.endGroup group if group?
         callback()
 
 exports.getComponent = -> new ScrapeHtml

@@ -28,7 +28,7 @@ exports["test change concurrency"] = (test) ->
     q.on "data", (data) -> events.push "queued #{data}"
     sat.on "data", (data) ->
         events.push "saturated"
-        test.equal data, 4
+        test.equal data, 3
     emp.on "data", -> events.push "empty"
     out.on "begingroup", (data) -> output.push "begingroup #{data}"
     out.on "data", (data) -> output.push data
@@ -39,14 +39,13 @@ exports["test change concurrency"] = (test) ->
         test.same events, [
             "queued 1",
             "queued 2",
-            "queued 3",
             "saturated",
-            "queued 4",
+            "queued 3",
             "empty",
             "drain"
         ]
         test.done()
-    cc.send 4
+    cc.send 3
     cc.disconnect()
     s.send "p.test"
     s.disconnect()

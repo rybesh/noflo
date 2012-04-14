@@ -19,15 +19,17 @@ class ReadFile extends noflo.QueueingComponent
 
         super "ReadFile"
 
-    readFile: (fileName, callback) ->
+    readFile: (fileName, groups, callback) ->
         fs.readFile fileName, "utf-8", (err, data) =>
             if err
                 @outPorts.error.send err
                 @outPorts.error.disconnect()
                 return callback err
+            @outPorts.out.beginGroup group for group in groups
             @outPorts.out.beginGroup fileName
             @outPorts.out.send data
             @outPorts.out.endGroup()
+            @outPorts.out.endGroup() for group in groups
             @outPorts.out.disconnect()
             callback()
 

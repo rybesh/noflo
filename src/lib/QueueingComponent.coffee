@@ -34,10 +34,8 @@ class QueueingComponent extends component.Component
         groups = @groups.slice 0 # make a copy
         task = do (args, groups) =>
             return (callback) =>
-                @outPorts.out.beginGroup group for group in groups
-                args.push =>
-                    @outPorts.out.endGroup() for group in groups
-                    callback()
+                args.push groups
+                args.push callback
                 func.apply this, args
         @_queue.push task
         @outPorts.queued.send @_queue.length() if @outPorts.queued.socket

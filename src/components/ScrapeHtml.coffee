@@ -42,17 +42,19 @@ class ScrapeHtml extends noflo.QueueingComponent
 
         super "ScrapeHtml"
 
-    scrapeHtml: (html, callback) ->
+    scrapeHtml: (html, groups, callback) ->
         return callback() unless html.length > 0
         return callback() unless @textSelector.length > 0
         $ = cheerio.load html
         $(ignore).remove() for ignore in @ignoreSelectors
+        @outPorts.out.beginGroup group for group in groups
         $(@textSelector).each (i,e) =>
             o = $(e)
             id = o.attr "id"
             @outPorts.out.beginGroup id if id?
             @outPorts.out.send decode o.text()
             @outPorts.out.endGroup() if id?
+        @outPorts.out.endGroup() for group in groups
         callback()
 
 exports.getComponent = -> new ScrapeHtml

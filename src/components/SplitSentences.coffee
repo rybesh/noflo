@@ -6,7 +6,7 @@ class SplitSentences extends noflo.QueueingComponent
 
         @ready = false
         splitta.loadModel (err, model) =>
-            throw err if err?
+            throw err if err
             @model = model
             @ready = true
             @emit "ready"
@@ -34,14 +34,16 @@ class SplitSentences extends noflo.QueueingComponent
     isReady: ->
         @ready
 
-    splitSentences: (text, callback) ->
+    splitSentences: (text, groups, callback) ->
         return callback() unless text.length > 0
         @model.segment text, (err, sentences) =>
             if err
                 @outPorts.error.send err
                 @outPorts.error.disconnect()
                 return callback()
+            @outPorts.out.beginGroup group for group in groups
             @outPorts.out.send sentence for sentence in sentences
+            @outPorts.out.endGroup() for group in groups
             callback()
 
 exports.getComponent = -> new SplitSentences

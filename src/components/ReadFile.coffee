@@ -6,32 +6,21 @@
 fs = require "fs"
 noflo = require "noflo"
 
-class ReadFile extends noflo.QueueingComponent
+class ReadFile extends noflo.AsyncComponent
     constructor: ->
         @inPorts =
             in: new noflo.Port()
         @outPorts =
             out: new noflo.Port()
             error: new noflo.Port()
+        super()
 
-        @inPorts.in.on "data", (data) =>
-            @push @readFile, [data]
-
-        super "ReadFile"
-
-    readFile: (fileName, groups, callback) ->
+    doAsync: (fileName, callback) ->
         fs.readFile fileName, "utf-8", (err, data) =>
-            if err
-                @outPorts.error.send err
-                @outPorts.error.disconnect()
-                return callback err
-            @outPorts.out.beginGroup group for group in groups
             @outPorts.out.beginGroup fileName
             @outPorts.out.send data
             @outPorts.out.endGroup()
-            @outPorts.out.endGroup() for group in groups
-            @outPorts.out.disconnect()
-            callback()
+            callback err, data
 
 exports.getComponent = ->
     new ReadFile()

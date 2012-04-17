@@ -17,10 +17,11 @@ class ReadFile extends noflo.AsyncComponent
 
     doAsync: (fileName, callback) ->
         fs.readFile fileName, "utf-8", (err, data) =>
+            return callback err if err?
             @outPorts.out.beginGroup fileName
             @outPorts.out.send data
             @outPorts.out.endGroup()
-            callback err, data
+            callback null
 
 exports.getComponent = ->
     new ReadFile()

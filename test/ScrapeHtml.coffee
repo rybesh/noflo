@@ -5,58 +5,12 @@ setupComponent = ->
     c = scrape.getComponent()
     ins = socket.createSocket()
     out = socket.createSocket()
-    q = socket.createSocket()
-    sat = socket.createSocket()
-    emp = socket.createSocket()
-    dra = socket.createSocket()
     c.inPorts.in.attach ins
     c.outPorts.out.attach out
-    c.outPorts.queued.attach q
-    c.outPorts.saturated.attach sat
-    c.outPorts.empty.attach emp
-    c.outPorts.drain.attach dra
-    return [c, ins, out, q, sat, emp, dra]
-
-exports["test change concurrency"] = (test) ->
-    [c, ins, out, q, sat, emp, dra] = setupComponent()
-    cc = socket.createSocket()
-    s = socket.createSocket()
-    c.inPorts.concurrency.attach cc
-    c.inPorts.textSelector.attach s
-    output = []
-    events = []
-    q.on "data", (data) -> events.push "queued #{data}"
-    sat.on "data", (data) ->
-        events.push "saturated"
-        test.equal data, 3
-    emp.on "data", -> events.push "empty"
-    out.on "begingroup", (data) -> output.push "begingroup #{data}"
-    out.on "data", (data) -> output.push data
-    out.on "endgroup", -> output.push "endgroup"
-    dra.on "data", ->
-        events.push "drain"
-        test.same output, ["begingroup test", "bar", "baz", "endgroup"]
-        test.same events, [
-            "queued 1",
-            "queued 2",
-            "saturated",
-            "queued 3",
-            "empty",
-            "drain"
-        ]
-        test.done()
-    cc.send 3
-    cc.disconnect()
-    s.send "p.test"
-    s.disconnect()
-    ins.beginGroup "test"
-    ins.send '<div><p>foo</p><p class="test">ba'
-    ins.send 'r</p><p class="test">baz</p></div>'
-    ins.endGroup()
-    ins.disconnect()
+    return [c, ins, out]
 
 exports["test selector then html"] = (test) ->
-    [c, ins, out, q, sat, emp, dra] = setupComponent()
+    [c, ins, out] = setupComponent()
     s = socket.createSocket()
     c.inPorts.textSelector.attach s
     expect = ["bar","baz"]
@@ -72,7 +26,7 @@ exports["test selector then html"] = (test) ->
     ins.disconnect()
 
 exports["test html then selector"] = (test) ->
-    [c, ins, out, q, sat, emp, dra] = setupComponent()
+    [c, ins, out] = setupComponent()
     s = socket.createSocket()
     c.inPorts.textSelector.attach s
     expect = ["bar","baz"]
@@ -86,7 +40,7 @@ exports["test html then selector"] = (test) ->
     s.disconnect()
 
 exports["test ignore"] = (test) ->
-    [c, ins, out, q, sat, emp, dra] = setupComponent()
+    [c, ins, out] = setupComponent()
     s = socket.createSocket()
     i = socket.createSocket()
     c.inPorts.textSelector.attach s
@@ -105,7 +59,7 @@ exports["test ignore"] = (test) ->
     s.disconnect()
 
 exports["test group by element id"] = (test) ->
-    [c, ins, out, q, sat, emp, dra] = setupComponent()
+    [c, ins, out] = setupComponent()
     s = socket.createSocket()
     c.inPorts.textSelector.attach s
     expectevent = "begingroup"

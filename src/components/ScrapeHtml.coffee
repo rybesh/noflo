@@ -6,7 +6,7 @@ decode = (str) ->
   return str unless str.indexOf "&" >= 0
   return str.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")
 
-class ScrapeHtml extends noflo.QueueingComponent
+class ScrapeHtml extends noflo.Component
     constructor: ->
         @textSelector = ""
         @ignoreSelectors = []
@@ -19,42 +19,40 @@ class ScrapeHtml extends noflo.QueueingComponent
             out: new noflo.Port()
             error: new noflo.Port()
 
-        html = ""
+        @html = ""
         @inPorts.in.on "connect", =>
-            html = ""
+            @html = ""
+        @inPorts.in.on "begingroup", (group) ->
+            @html = ""
+            @outPorts.out.beginGroup group
         @inPorts.in.on "data", (data) =>
-            html += data
+            @html += data
         @inPorts.in.on "endgroup", =>
-            @push @scrapeHtml, [html]
-            html = ""
+            @scrapeHtml()
+            @outPorts.out.endGroup()
         @inPorts.in.on "disconnect", =>
-            @push @scrapeHtml, [html]
-            html = ""
+            @scrapeHtml()
+            @outPorts.out.disconnect()
 
         @inPorts.textSelector.on "data", (data) =>
             @textSelector = data
         @inPorts.textSelector.on "disconnect", =>
-            @push @scrapeHtml, [html]
-            html = ""
+            @scrapeHtml()
 
         @inPorts.ignoreSelector.on "data", (data) =>
             @ignoreSelectors.push data
 
-        super "ScrapeHtml"
-
-    scrapeHtml: (html, groups, callback) ->
-        return callback() unless html.length > 0
-        return callback() unless @textSelector.length > 0
-        $ = cheerio.load html
+    scrapeHtml: ->
+        return unless @html.length > 0
+        return unless @textSelector.length > 0
+        $ = cheerio.load @html
         $(ignore).remove() for ignore in @ignoreSelectors
-        @outPorts.out.beginGroup group for group in groups
         $(@textSelector).each (i,e) =>
             o = $(e)
             id = o.attr "id"
             @outPorts.out.beginGroup id if id?
             @outPorts.out.send decode o.text()
             @outPorts.out.endGroup() if id?
-        @outPorts.out.endGroup() for group in groups
-        callback()
+        @html = ""
 
 exports.getComponent = -> new ScrapeHtml

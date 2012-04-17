@@ -33,9 +33,6 @@ exports["test splitting grouped text"] = (test) ->
             ]
             test.done()
         ins.beginGroup "test"
-        ins.send "One of Manila's most notorious jails is allowing inmate"
-        ins.send "s to handle cleavers and knives. Based on a reality sho"
-        ins.send "w, it is meant to hone inmates' skills, keep them produ"
-        ins.send "ctive, and prepare them to return to the work force."
+        ins.send "One of Manila's most notorious jails is allowing inmates to handle cleavers and knives. Based on a reality show, it is meant to hone inmates' skills, keep them productive, and prepare them to return to the work force."
         ins.endGroup()
         ins.disconnect()

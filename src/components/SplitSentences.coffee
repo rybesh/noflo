@@ -1,7 +1,7 @@
 noflo = require "noflo"
 splitta = require "splitta"
 
-class SplitSentences extends noflo.QueueingComponent
+class SplitSentences extends noflo.AsyncComponent
     constructor: ->
 
         @ready = false
@@ -16,34 +16,16 @@ class SplitSentences extends noflo.QueueingComponent
         @outPorts =
             out: new noflo.Port()
             error: new noflo.Port()
-
-        text = ""
-        @inPorts.in.on "connect", =>
-            text = ""
-        @inPorts.in.on "data", (data) =>
-            text += data
-        @inPorts.in.on "endgroup", =>
-            @push @splitSentences, [text]
-            text = ""
-        @inPorts.in.on "disconnect", =>
-            @push @splitSentences, [text]
-            text = ""
-
-        super "SplitSentences"
+        super()
 
     isReady: ->
         @ready
 
-    splitSentences: (text, groups, callback) ->
-        return callback() unless text.length > 0
+    doAsync: (text, callback) ->
+        return callback null unless text.length > 0
         @model.segment text, (err, sentences) =>
-            if err
-                @outPorts.error.send err
-                @outPorts.error.disconnect()
-                return callback()
-            @outPorts.out.beginGroup group for group in groups
+            return callback err if err?
             @outPorts.out.send sentence for sentence in sentences
-            @outPorts.out.endGroup() for group in groups
-            callback()
+            callback null
 
 exports.getComponent = -> new SplitSentences

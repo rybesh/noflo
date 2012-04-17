@@ -11,7 +11,8 @@ class Output extends noflo.Component
             showHidden: false
             depth: 2
             colors: false
-            groups: true
+            groups: false
+            error: false
 
         @inPorts =
             in: new noflo.ArrayPort()
@@ -37,8 +38,9 @@ class Output extends noflo.Component
             @options[key] = value
 
     log: (data) ->
-        return console.log data unless typeof data == "object"
-        console.log util.inspect data,
+        logger = if @options.error then console.error else console.log
+        return logger data unless typeof data == "object"
+        logger util.inspect data,
             @options.showHidden, @options.depth, @options.colors
 
 exports.getComponent = ->

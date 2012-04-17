@@ -3,7 +3,7 @@
 #     NoFlo may be freely distributed under the MIT license
 internalSocket = require "./InternalSocket"
 component = require "./Component"
-queueingcomponent = require "./QueueingComponent"
+asynccomponent = require "./AsyncComponent"
 port = require "./Port"
 arrayport = require "./ArrayPort"
 graph = require "./Graph"
@@ -76,7 +76,7 @@ class NoFlo
         implementation.getComponent()
 
     # ## Add a process to the network
-    # 
+    #
     # Processes can be added to a network at either start-up time
     # or later. The processes are added with a node definition object
     # that includes the following properties:
@@ -95,7 +95,7 @@ class NoFlo
         if node.component
             process.component = @load node.component
 
-        # Store and return the process instance 
+        # Store and return the process instance
         @processes[process.id] = process
 
     removeNode: (node) ->
@@ -235,7 +235,7 @@ exports.saveFile = (graph, file, success) ->
         success file
 
 exports.Component = component.Component
-exports.QueueingComponent = queueingcomponent.QueueingComponent
+exports.AsyncComponent = asynccomponent.AsyncComponent
 exports.Port = port.Port
 exports.ArrayPort = arrayport.ArrayPort
 exports.Graph = graph.Graph

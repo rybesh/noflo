@@ -30,6 +30,7 @@ class AsyncComponent extends component.Component
             if err?
                 if (@errPortName of @outPorts)
                     @outPorts[@errPortName].send err
+                    @outPorts[@errPortName].disconnect()
                 else throw err
             @decrementLoad()
 

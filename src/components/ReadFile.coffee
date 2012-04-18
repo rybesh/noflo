@@ -21,6 +21,7 @@ class ReadFile extends noflo.AsyncComponent
             @outPorts.out.beginGroup fileName
             @outPorts.out.send data
             @outPorts.out.endGroup()
+            @outPorts.out.disconnect()
             callback null
 
 exports.getComponent = ->

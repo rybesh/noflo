@@ -90,15 +90,15 @@ exports["test async data handling without groups"] = (test) ->
 exports["test async data handling with groups"] = (test) ->
     [t, ins, out, lod, err] = setupComponent()
     output = []
+    groups = 0
     out.on "begingroup", (group) ->
         output.push "group #{group}"
     out.on "data", (data) ->
         output.push "out #{data}"
     out.on "endgroup", ->
         output.push "endgroup"
-    lod.on "data", (data) ->
-        output.push "load #{data}"
-        if data == 0
+        groups++
+        if groups == 2
             test.same output, [
                 "group g1",
                 "load 1",
@@ -106,21 +106,23 @@ exports["test async data handling with groups"] = (test) ->
                 "out waited 200",
                 "load 1",
                 "out waited 500",
+                "load 0",
                 "endgroup",
                 "group g2",
                 "load 1",
                 "load 2",
-                "load 3",
                 "load 3",
                 "out waited 100",
                 "load 2",
                 "out waited 150",
                 "load 1",
                 "out waited 400",
-                "endgroup",
-                "load 0"
+                "load 0",
+                "endgroup"
             ]
             test.done()
+    lod.on "data", (data) ->
+        output.push "load #{data}"
     err.on "data", (data) ->
         test.fail data
         test.done()
@@ -137,37 +139,39 @@ exports["test async data handling with groups"] = (test) ->
 exports["test async data handling with nested groups"] = (test) ->
     [t, ins, out, lod, err] = setupComponent()
     output = []
+    groups = 0
     out.on "begingroup", (group) ->
         output.push "group #{group}"
     out.on "data", (data) ->
         output.push "out #{data}"
     out.on "endgroup", ->
         output.push "endgroup"
-    lod.on "data", (data) ->
-        output.push "load #{data}"
-        if data == 0
+        groups++
+    lod.on "data", (load) ->
+        output.push "load #{load}"
+        if load == 0 and groups == 3
             test.same output, [
                 "load 1",
                 "out waited 500",
+                "load 0",
                 "group g1",
                 "load 1",
-                "load 1",
                 "out waited 400",
+                "load 0",
                 "group g1a",
                 "load 1",
-                "load 1",
                 "out waited 300",
+                "load 0",
                 "endgroup",
                 "group g1b",
                 "load 1",
-                "load 1",
                 "out waited 200",
+                "load 0",
                 "endgroup",
-                "load 1",
                 "load 1",
                 "out waited 100",
+                "load 0",
                 "endgroup",
-                "load 1",
                 "load 1",
                 "out waited 50",
                 "load 0"

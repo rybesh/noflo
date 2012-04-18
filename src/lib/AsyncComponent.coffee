@@ -44,10 +44,11 @@ class AsyncComponent extends component.Component
     decrementLoad: ->
         throw new Error "load cannot be negative" if @load == 0
         @load--
-        @processQueue() if @load == 0
         @outPorts.load.send @load if @outPorts.load.socket
+        process.nextTick => @processQueue()
 
     processQueue: ->
+        return if @load > 0
         processedData = false
         while @q.length > 0
             event = @q[0]

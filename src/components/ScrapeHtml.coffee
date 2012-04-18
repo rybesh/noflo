@@ -22,7 +22,7 @@ class ScrapeHtml extends noflo.Component
         @html = ""
         @inPorts.in.on "connect", =>
             @html = ""
-        @inPorts.in.on "begingroup", (group) ->
+        @inPorts.in.on "begingroup", (group) =>
             @html = ""
             @outPorts.out.beginGroup group
         @inPorts.in.on "data", (data) =>

@@ -20,6 +20,10 @@ class AsyncComponent extends component.Component
             return @q.push { name: "endgroup" } if @load > 0
             @outPorts[@outPortName].endGroup()
 
+        @inPorts[@inPortName].on "disconnect", =>
+            return @q.push { name: "disconnect" } if @load > 0
+            @outPorts[@outPortName].disconnect()
+
         @inPorts[@inPortName].on "data", (data) =>
             return @q.push { name: "data", data: data } if @q.length > 0
             @processData data
@@ -60,6 +64,10 @@ class AsyncComponent extends component.Component
                 when "endgroup"
                     return if processedData
                     @outPorts[@outPortName].endGroup()
+                    @q.shift()
+                when "disconnect"
+                    return if processedData
+                    @outPorts[@outPortName].disconnect()
                     @q.shift()
                 when "data"
                     @processData event.data

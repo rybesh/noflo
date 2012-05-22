@@ -1,6 +1,7 @@
 noflo = require 'noflo'
+parser = require 'js-yaml'
 
-class ParseJson extends noflo.Component
+class ParseYaml extends noflo.Component
     constructor: ->
         @inPorts =
             in: new noflo.Port()
@@ -8,8 +9,8 @@ class ParseJson extends noflo.Component
             out: new noflo.Port()
 
         @inPorts.in.on "data", (data) =>
-            @outPorts.out.send JSON.parse data
+            @outPorts.out.send parser.load data
         @inPorts.in.on "disconnect", =>
             @outPorts.out.disconnect()
 
-exports.getComponent = -> new ParseJson
+exports.getComponent = -> new ParseYaml

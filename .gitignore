@@ -4,4 +4,4 @@ bin/*.js
 lib/*.js
 components/*
 server/static/js/*.js
-docs
+docs_tmp/

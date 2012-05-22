@@ -15,19 +15,23 @@ class Output extends noflo.Component
             error: false
 
         @inPorts =
-            in: new noflo.ArrayPort()
-            options: new noflo.Port()
+            in: new noflo.ArrayPort
+            options: new noflo.Port
 
-        @outPorts = {}
+        @outPorts =
+            out: new noflo.Port
 
         @inPorts.in.on "begingroup", (group) =>
             @log ""
             @log "[    group ] #{group}".magenta if @options.groups
+            @outPorts.out.beginGroup group if @outPorts.out.isAttached()
         @inPorts.in.on "data", (data) =>
             @log data
+            @outPorts.out.send data if @outPorts.out.isAttached()
         @inPorts.in.on "endgroup", =>
             @log "[ endgroup ]".magenta if @options.groups
             @log ""
+            @outPorts.out.endGroup() if @outPorts.out.isAttached()
 
         @inPorts.options.on "data", (data) =>
             @setOptions data

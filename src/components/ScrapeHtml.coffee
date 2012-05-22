@@ -1,6 +1,5 @@
 noflo = require "noflo"
 cheerio = require "cheerio"
-fs = require "fs"
 
 decode = (str) ->
   return str unless str.indexOf "&" >= 0
@@ -17,7 +16,6 @@ class ScrapeHtml extends noflo.Component
             ignoreSelector: new noflo.ArrayPort()
         @outPorts =
             out: new noflo.Port()
-            error: new noflo.Port()
 
         @html = ""
         @inPorts.in.on "connect", =>

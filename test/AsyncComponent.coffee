@@ -211,5 +211,13 @@ exports["test doAsync failure"] = (test) ->
         output.push "#{err}"
     ins.send -1
 
-
-
+exports["test cleanup on disconnect"] = (test) ->
+    [t, ins, out, lod, err] = setupComponent()
+    cleanedUp = false
+    t.cleanUp = (callback) ->
+        cleanedUp = true
+        callback()
+    out.once "disconnect", ->
+        test.ok cleanedUp
+        test.done()
+    ins.disconnect()

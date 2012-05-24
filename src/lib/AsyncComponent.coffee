@@ -22,7 +22,7 @@ class AsyncComponent extends component.Component
 
         @inPorts[@inPortName].on "disconnect", =>
             return @q.push { name: "disconnect" } if @load > 0
-            @disconnect()
+            @outPorts[@outPortName].disconnect()
 
         @inPorts[@inPortName].on "data", (data) =>
             return @q.push { name: "data", data: data } if @q.length > 0
@@ -44,12 +44,6 @@ class AsyncComponent extends component.Component
 
     doAsync: (data, callback) ->
         callback new Error "AsyncComponents must implement doAsync"
-
-    disconnect: ->
-        @cleanUp => @outPorts[@outPortName].disconnect()
-
-    cleanUp: (callback) ->
-        callback()
 
     decrementLoad: ->
         throw new Error "load cannot be negative" if @load == 0
@@ -73,7 +67,7 @@ class AsyncComponent extends component.Component
                     @q.shift()
                 when "disconnect"
                     return if processedData
-                    @disconnect()
+                    @outPorts[@outPortName].disconnect()
                     @q.shift()
                 when "data"
                     @processData event.data

@@ -39,9 +39,6 @@ class HMSET extends noflo.AsyncComponent
             key = if @prefix? then "#{@prefix}:#{id}" else id
             callback null, key
 
-    cleanUp: (callback) ->
-        @client.quit -> callback()
-
     doAsync: (obj, callback) ->
         unless typeof obj == "object"
             return callback new Error "data must be an object"
@@ -49,7 +46,7 @@ class HMSET extends noflo.AsyncComponent
             return callback err if err?
             @client.hmset key, obj, (err, res) =>
                 return callback err if err?
-                @outPorts.out.send key
+                @outPorts.out.send key if @outPorts.out.socket?
                 callback null
 
 exports.getComponent = ->

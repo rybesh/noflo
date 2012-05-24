@@ -12,7 +12,7 @@ exports["callto super without ports should throw error"] = (test) ->
     test.throws (-> new C2), "no outPort named 'out'"
     test.done()
 
-exports["unimplemented doSync should throw error"] = (test) ->
+exports["unimplemented doAsync should throw error"] = (test) ->
     class Unimplemented extends AsyncComponent
         constructor: ->
             @inPorts =
@@ -45,6 +45,8 @@ setupComponent = ->
                 error: new Port()
             super()
         doAsync: (data, callback) ->
+            unless data >= 0
+                return callback new Error "timeout must be positive"
             setTimeout (=>
                 @outPorts.out.send "waited #{data}"
                 callback()
@@ -192,5 +194,22 @@ exports["test async data handling with nested groups"] = (test) ->
     ins.send 100
     ins.endGroup()
     ins.send 50
+
+exports["test doAsync failure"] = (test) ->
+    [t, ins, out, lod, err] = setupComponent()
+    output = []
+    lod.on "data", (data) ->
+        output.push "load #{data}"
+        if data == 0
+            test.same output, [
+                "load 1",
+                "Error: timeout must be positive",
+                "load 0"
+            ]
+            test.done()
+    err.on "data", (err) ->
+        output.push "#{err}"
+    ins.send -1
+
 
 

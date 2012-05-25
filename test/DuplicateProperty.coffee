@@ -46,6 +46,14 @@ exports["test dupe property via concat"] = (test) ->
     pro.send "d=c=b=a"
     ins.send { a:1, b:2, c:3 }
 
+exports["test modify property via concat"] = (test) ->
+    [c, ins, pro, sep, out] = setupComponent()
+    out.on "data", (data) ->
+        test.same data, { a:1, b:2, c:"3/2/1" }
+        test.done()
+    pro.send "c=c=b=a"
+    ins.send { a:1, b:2, c:3 }
+
 exports["test change separator"] = (test) ->
     [c, ins, pro, sep, out] = setupComponent()
     out.on "data", (data) ->

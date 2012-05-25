@@ -28,15 +28,15 @@ class DuplicateProperty extends noflo.Component
 
     setProperty: (prop) ->
         if typeof prop is "object"
-            @prop = prop
+            @properties = prop
             return
 
         propParts = prop.split "="
         if propParts.length > 2
-            @properties[propParts.pop()] = propParts 
+            @properties[propParts.shift()] = propParts
             return
-        
-        @properties[propParts[1]] = propParts[0]
+
+        @properties[propParts[0]] = propParts[1]
 
     addProperties: (object) ->
         for newprop, original of @properties

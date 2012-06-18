@@ -1,8 +1,8 @@
-jsonpath = require "../src/components/JsonPath"
+getpath = require "../src/components/GetObjectPath"
 socket = require "../src/lib/InternalSocket"
 
 setupComponent = ->
-    c = jsonpath.getComponent()
+    c = getpath.getComponent()
     ins = socket.createSocket()
     out = socket.createSocket()
     err = socket.createSocket()

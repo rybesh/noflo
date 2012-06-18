@@ -1,7 +1,7 @@
 noflo = require "noflo"
 jsonpath = require "jsonpath"
 
-class JsonPath extends noflo.Component
+class GetObjectPath extends noflo.Component
     constructor: ->
         @path = null
         @q = []
@@ -40,4 +40,4 @@ class JsonPath extends noflo.Component
     evaluatePath: (o) ->
         @outPorts.out.send result for result in jsonpath.eval o, @path
 
-exports.getComponent = -> new JsonPath
+exports.getComponent = -> new GetObjectPath

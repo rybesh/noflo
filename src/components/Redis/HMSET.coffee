@@ -7,6 +7,7 @@ class HMSET extends noflo.AsyncComponent
     constructor: ->
         @prefix = null
         @id = "id"
+        @timeout = 5000
 
         @client = redis.createClient()
 
@@ -26,7 +27,13 @@ class HMSET extends noflo.AsyncComponent
         @inPorts.id.on "data", (data) =>
             @id = data
 
+        setTimeout (=> @quitIfIdle()), @timeout
+
         super()
+
+    quitIfIdle: ->
+        return @client.quit() if @load == 0 and @q.length == 0
+        setTimeout (=> @quitIfIdle()), @timeout
 
     getID: (obj, callback) ->
         return callback null, String(obj[@id]) if @id of obj

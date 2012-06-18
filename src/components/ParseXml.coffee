@@ -1,7 +1,7 @@
 noflo = require "noflo"
 xml2js = require "xml2js"
 
-class ParseXml extends noflo.Component
+class ParseXml extends noflo.AsyncComponent
     constructor: ->
         @options = # defaults recommended by xml2js docs
             normalize: false
@@ -14,27 +14,21 @@ class ParseXml extends noflo.Component
         @outPorts =
             out: new noflo.Port()
 
-        xml = ""
-        @inPorts.in.on "data", (data) ->
-            xml += data
-        @inPorts.in.on "disconnect", =>
-            @parseXml xml
-            xml = ""
-
         @inPorts.options.on "data", (data) =>
             @setOptions data
+
+        super()
 
     setOptions: (options) ->
         throw "Options is not an object" unless typeof options is "object"
         for own key, value of options
             @options[key] = value
 
-    parseXml: (xml) ->
-        target = @outPorts.out
-        parser = new xml2js.Parser(@options)
-        parser.on "end", (parsed) ->
-            target.send parsed
-            target.disconnect()
-        parser.parseString xml
+    doAsync: (xml, callback) ->
+        parser = new xml2js.Parser @options
+        parser.parseString xml, (err, o) =>
+            return callback err if err?
+            @outPorts.out.send o
+            callback null
 
 exports.getComponent = -> new ParseXml

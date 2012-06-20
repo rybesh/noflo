@@ -15,17 +15,17 @@ class TypeRouter extends noflo.Component
 
     @inPorts.in.on 'begingroup', (group) =>
       for port of @outPorts
-        @outPorts[port].beginGroup group
+        @outPorts[port].beginGroup group if @outPorts[port].socket?
 
     @inPorts.in.on 'data', (data) =>
       @outPorts[(toString.call data).slice(8,-1).toLowerCase()].send data
 
     @inPorts.in.on 'endgroup', =>
       for port of @outPorts
-        @outPorts[port].endGroup()
+        @outPorts[port].endGroup() if @outPorts[port].socket?
 
     @inPorts.in.on 'disconnect', =>
       for port of @outPorts
-        @outPorts[port].disconnect()
+        @outPorts[port].disconnect() if @outPorts[port].socket?
 
 exports.getComponent = -> new TypeRouter

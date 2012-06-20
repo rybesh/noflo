@@ -39,7 +39,7 @@ exports['test no dupes'] = (test) ->
     ins.endGroup()
     ins.disconnect()
 
-exports['test dupes 2'] = (test) ->
+exports['test dedupe groups 2'] = (test) ->
     test.expect 1
     [c, ins, out] = setupComponent()
     actual = []
@@ -67,7 +67,7 @@ exports['test dupes 2'] = (test) ->
     ins.endGroup()
     ins.disconnect()
 
-exports['test dupes 1'] = (test) ->
+exports['test dedupe groups 1'] = (test) ->
     test.expect 1
     [c, ins, out] = setupComponent()
     actual = []
@@ -94,3 +94,17 @@ exports['test dupes 1'] = (test) ->
     ins.endGroup()
     ins.endGroup()
     ins.disconnect()
+
+exports['dedupe disconnects'] = (test) ->
+    test.expect 1
+    [c, ins, out] = setupComponent()
+    disconnects = 0
+    out.on "data", (data) ->
+        test.equal disconnects, 2
+        test.done()
+    out.on "disconnect", ->
+        disconnects++
+    ins.disconnect()
+    ins.disconnect()
+    ins.disconnect()
+    ins.send 1

@@ -163,10 +163,13 @@ exports['test reject'] = (test) ->
       "begingroup foo"
       "load 1"
       "begingroup yes"
-      "the quick brown"
+      "the quick brown "
       "begingroup yes"
       "fox"
       "endgroup"
+      "endgroup"
+      "begingroup yes"
+      "keep us together"
       "endgroup"
       "load 0"
       "endgroup"
@@ -176,14 +179,12 @@ exports['test reject'] = (test) ->
     test.fail data
   lod.on "data", (load) ->
     data.push "load #{load}"
-  opt.send {trim:true}
   acc.send "yes"
   rej.send "no"
   ins.beginGroup "foo"
   ins.send """<doc>
-<yes>
-the quick brown <no>fuzz <yes>fox</yes></no>
-</yes>
+<yes>the quick brown <no>fuzz <yes>fox</yes></no></yes>
+<yes>keep us <no/>together</yes>
 </doc>
 """
   ins.endGroup()

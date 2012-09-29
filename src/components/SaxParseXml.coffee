@@ -10,6 +10,7 @@ class SaxParseXml extends noflo.AsyncComponent
         @accept = []
         @reject = []
         @capturing = [false]
+        @text = ""
 
         @inPorts =
             in: new noflo.Port()
@@ -21,19 +22,21 @@ class SaxParseXml extends noflo.AsyncComponent
             error: new noflo.Port()
 
         @inPorts.options.on "data", (data) =>
-            @setOptions data
+            @setOptions data unless typeof options is "object"
         @inPorts.accept.on "data", (data) =>
-            @accept.push data
+            data = [data] unless data instanceof Array
+            @accept.push d for d in data
             @updateTagHandlers() if @parser?
         @inPorts.reject.on "data", (data) =>
-            @reject.push data
+            data = [data] unless data instanceof Array
+            @reject.push d for d in data
             @updateTagHandlers() if @parser?
 
         super()
 
     setOptions: (options) ->
         throw "parser already initialized" if @parser?
-        throw "options is not an object" unless typeof options is "object"
+        throw "options is not an object" unless options instanceof Object
         for own key, value of options
             @options[key] = value
 
@@ -44,11 +47,15 @@ class SaxParseXml extends noflo.AsyncComponent
             else if node.name in @reject
                 @capturing.push false
             if @capturing[-1..][0]
+                @outPorts.out.send @text if @text.length > 0
+                @text = ""
                 @outPorts.out.beginGroup node.name
                 if (k for k of node.attributes).length > 0
                     @outPorts.out.send node.attributes
         @parser.onclosetag = (name) =>
             if @capturing[-1..][0]
+                @outPorts.out.send @text if @text.length > 0
+                @text = ""
                 @outPorts.out.endGroup name
             if name in @accept or name in @reject
                 @capturing.pop()
@@ -56,7 +63,7 @@ class SaxParseXml extends noflo.AsyncComponent
     initParser: ->
         @parser = sax.parser @strict, @options
         @parser.ontext = (text) =>
-            @outPorts.out.send text if @capturing[-1..][0]
+            @text += text if @capturing[-1..][0]
         @parser.onerror = (err) =>
             @outPorts.error.send err
             @parser.resume()

@@ -56,7 +56,6 @@ class AsyncComponent extends component.Component
         processedData = false
         while @q.length > 0
             event = @q[0]
-            console.log event.name
             switch event.name
                 when "begingroup"
                     return if processedData

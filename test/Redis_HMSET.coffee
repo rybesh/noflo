@@ -44,7 +44,7 @@ exports["test default behavior"] = (test) ->
     [c, ins, out, lod, err] = setupComponent()
     obj =
         foo: "bar"
-        biz: 69
+        biz: "69"
     err.once "data", (err) ->
         test.fail err.message
         test.done()
@@ -67,7 +67,7 @@ exports["test specify prefix"] = (test) ->
     c.inPorts.prefix.attach pre
     obj =
         foo: "bar"
-        biz: 69
+        biz: "69"
     err.once "data", (err) ->
         test.fail err.message
         test.done()
@@ -90,7 +90,7 @@ exports["test specify ID property"] = (test) ->
     c.inPorts.id.attach idp
     obj =
         foo: "bar"
-        biz: 69
+        biz: "69"
     err.once "data", (err) ->
         test.fail err.message
         test.done()
@@ -113,7 +113,7 @@ exports["test specify obj property as ID"] = (test) ->
     c.inPorts.id.attach idp
     obj =
         foo: "bar"
-        biz: 69
+        biz: "69"
     err.once "data", (err) ->
         test.fail err.message
         test.done()
@@ -138,7 +138,7 @@ exports["test specify both prefix and obj property as ID"] = (test) ->
     c.inPorts.id.attach idp
     obj =
         foo: "bar"
-        biz: 69
+        biz: "69"
     err.once "data", (err) ->
         test.fail err.message
         test.done()

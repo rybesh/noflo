@@ -56,6 +56,7 @@ class AsyncComponent extends component.Component
         processedData = false
         while @q.length > 0
             event = @q[0]
+            console.log event.name
             switch event.name
                 when "begingroup"
                     return if processedData
@@ -67,7 +68,7 @@ class AsyncComponent extends component.Component
                     @q.shift()
                 when "disconnect"
                     return if processedData
-                     @outPorts[@outPortName].disconnect()
+                    @outPorts[@outPortName].disconnect()
                     @q.shift()
                 when "data"
                     @processData event.data, (err) =>

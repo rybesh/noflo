@@ -28,7 +28,7 @@ class AsyncComponent extends component.Component
             return @q.push { name: "data", data: data } if @q.length > 0
             @processData data
 
-    processData: (data, callback) ->
+    processData: (data) ->
         @incrementLoad()
         @doAsync data, (err) =>
             if err?
@@ -36,9 +36,7 @@ class AsyncComponent extends component.Component
                     @outPorts[@errPortName].send err
                     @outPorts[@errPortName].disconnect()
                 else throw err
-                return callback err if callback?
             @decrementLoad()
-            callback null if callback?
 
     incrementLoad: ->
         @load++
@@ -73,8 +71,7 @@ class AsyncComponent extends component.Component
                     @q.shift()
                 when "data"
                     @processData event.data, (err) =>
-                        unless err?
-                            @q.shift()
-                            processedData = true
+                    @q.shift()
+                    processedData = true
 
 exports.AsyncComponent = AsyncComponent

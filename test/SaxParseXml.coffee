@@ -1,5 +1,6 @@
 factory = require "../src/components/SaxParseXml"
 socket = require "../src/lib/InternalSocket"
+util = require "util"
 
 setupComponent = ->
   c = factory.getComponent()
@@ -26,7 +27,7 @@ exports['test default setup'] = (test) ->
   out.on "begingroup", (group) ->
     data.push "begingroup #{group}"
   out.once "data", (data) ->
-    test.fail "no data sent by default"
+    test.fail "no data sent by default but got " + util.inspect data
   out.on "endgroup", ->
     data.push "endgroup"
   out.on "disconnect", ->
@@ -58,9 +59,7 @@ exports['test capture element'] = (test) ->
     test.same data, [
       "begingroup foo"
       "load 1"
-      "begingroup bar"
-      "\nbaz\n"
-      "endgroup"
+      {bar:["\nbaz\n"]}
       "load 0"
       "endgroup"
     ]
@@ -92,9 +91,7 @@ exports['test trim'] = (test) ->
     test.same data, [
       "begingroup foo"
       "load 1"
-      "begingroup bar"
-      "baz"
-      "endgroup"
+      {bar:["baz"]}
       "load 0"
       "endgroup"
     ]
@@ -127,9 +124,7 @@ exports['test normalize'] = (test) ->
     test.same data, [
       "begingroup foo"
       "load 1"
-      "begingroup bar"
-      " baz baz baz "
-      "endgroup"
+      {bar:[" baz baz baz "]}
       "load 0"
       "endgroup"
     ]
@@ -162,15 +157,10 @@ exports['test reject'] = (test) ->
     test.same data, [
       "begingroup foo"
       "load 1"
-      "begingroup yes"
-      "the quick brown "
-      "begingroup yes"
-      "fox"
-      "endgroup"
-      "endgroup"
-      "begingroup yes"
-      "keep us together"
-      "endgroup"
+      {yes:["the quick brown "]}
+      {yes:["fox"]}
+      {yes:[]}
+      {yes:["keep us together"]}
       "load 0"
       "endgroup"
     ]
@@ -204,20 +194,10 @@ exports['test attributes'] = (test) ->
     test.same data, [
       "begingroup foo"
       "load 1"
-      "begingroup marker"
-      {time:1}
-      "endgroup"
-      "begingroup yes"
-      "begingroup p"
-      "the quick brown fox"
-      "endgroup"
-      "begingroup marker"
-      {time:2}
-      "endgroup"
-      "begingroup p"
-      "jumped over"
-      "endgroup"
-      "endgroup"
+      {marker:[],time:"1"}
+      {yes:[{p:["the quick brown fox"]}],foo:"bar"}
+      {marker:[],time:"2"}
+      {yes:[{p:["jumped over"]}],foo:"bar"}
       "load 0"
       "endgroup"
     ]
@@ -232,7 +212,7 @@ exports['test attributes'] = (test) ->
   ins.beginGroup "foo"
   ins.send """<doc>
   <marker time="1"/>
-  <yes>
+  <yes foo="bar">
     <p>the quick brown fox</p>
     <marker time="2"/>
     <p>jumped over</p>

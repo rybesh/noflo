@@ -4,13 +4,15 @@ socket = require "../src/lib/InternalSocket"
 setupComponent = ->
     c = collect.getComponent()
     ins = socket.createSocket()
+    grp = socket.createSocket()
     out = socket.createSocket()
     c.inPorts.in.attach ins
+    c.inPorts.groups.attach grp
     c.outPorts.out.attach out
-    return [c, ins, out]
+    return [c, ins, grp, out]
 
 exports["test no groups"] = (test) ->
-    [c, ins, out] = setupComponent()
+    [c, ins, grp, out] = setupComponent()
     output = []
     out.on "data", (data) ->
         output.push data
@@ -23,7 +25,7 @@ exports["test no groups"] = (test) ->
     ins.disconnect()
 
 exports["test one group"] = (test) ->
-    [c, ins, out] = setupComponent()
+    [c, ins, grp, out] = setupComponent()
     output = []
     expect =
         g1:
@@ -42,12 +44,12 @@ exports["test one group"] = (test) ->
     ins.disconnect()
 
 exports["test group named $data"] = (test) ->
-    [c, ins, out] = setupComponent()
+    [c, ins, grp, out] = setupComponent()
     test.throws (-> ins.beginGroup "$data"), "groups cannot be named '$data'"
     test.done()
 
 exports["test two groups"] = (test) ->
-    [c, ins, out] = setupComponent()
+    [c, ins, grp, out] = setupComponent()
     output = []
     expect =
         g1:
@@ -69,8 +71,42 @@ exports["test two groups"] = (test) ->
     ins.endGroup()
     ins.disconnect()
 
+exports["test collect specified groups"] = (test) ->
+    [c, ins, grp, out] = setupComponent()
+    output = []
+    out.on "begingroup", (data) ->
+        output.push "begingroup #{data}"
+    out.on "data", (data) ->
+        output.push data
+    out.on "endgroup", ->
+        output.push "endgroup"
+    out.once "disconnect", ->
+        test.same output, [
+            {g1: {$data: ["a","b"]}}
+            "begingroup g2"
+            "c"
+            "d"
+            "endgroup"
+            {g3: {$data: ["e","f"]}}
+        ]
+        test.done()
+    grp.send ["g1","g3"]
+    ins.beginGroup "g1"
+    ins.send "a"
+    ins.send "b"
+    ins.endGroup()
+    ins.beginGroup "g2"
+    ins.send "c"
+    ins.send "d"
+    ins.endGroup()
+    ins.beginGroup "g3"
+    ins.send "e"
+    ins.send "f"
+    ins.endGroup()
+    ins.disconnect()
+
 exports["test two groups with same name"] = (test) ->
-    [c, ins, out] = setupComponent()
+    [c, ins, grp, out] = setupComponent()
     output = []
     expect =
         g1: [ { $data: ["a","b"] }, { $data: ["c","d"] } ]
@@ -90,7 +126,7 @@ exports["test two groups with same name"] = (test) ->
     ins.disconnect()
 
 exports["test nested groups"] = (test) ->
-    [c, ins, out] = setupComponent()
+    [c, ins, grp, out] = setupComponent()
     output = []
     expect =
         g1:
@@ -113,7 +149,7 @@ exports["test nested groups"] = (test) ->
     ins.disconnect()
 
 exports["test object data"] = (test) ->
-    [c, ins, out] = setupComponent()
+    [c, ins, grp, out] = setupComponent()
     output = []
     expect =
         g1:
@@ -130,7 +166,7 @@ exports["test object data"] = (test) ->
     ins.disconnect()
 
 exports["test array data"] = (test) ->
-    [c, ins, out] = setupComponent()
+    [c, ins, grp, out] = setupComponent()
     output = []
     expect =
         g1:
